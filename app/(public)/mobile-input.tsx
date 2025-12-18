@@ -1,12 +1,8 @@
+import MobileInput from "@/components/MobileInput";
 import React from "react";
-import { Text, View } from "react-native";
 
-function MobileInput() {
-  return (
-    <View>
-      <Text>MobileInput</Text>
-    </View>
-  );
+function MobileInputScreen() {
+  return <MobileInput />;
 }
 
-export default MobileInput;
+export default MobileInputScreen;
