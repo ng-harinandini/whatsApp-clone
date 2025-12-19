@@ -11,6 +11,10 @@ const styles = StyleSheet.create({
     top: 50,
     left: 25,
   },
+  error:{
+    color: "red",
+    marginBottom: 16,
+  },
   title: {
     fontSize: 24,
     color: "#333",

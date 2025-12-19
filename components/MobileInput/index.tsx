@@ -1,13 +1,14 @@
 import { countries } from "@/utils/countriesData";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import styles from "./styles";
 
@@ -22,10 +23,25 @@ function MobileInput() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [selectedCountry, setSelectedCountry] = useState<Country>(countries[0]);
   const [phoneNumber, setPhoneNumber] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
     setIsOpen(false);
+  };
+
+  const handleNext = async () => {
+    await AsyncStorage.setItem(
+      "mobileNumber",
+      `${selectedCountry.code} ${phoneNumber}`
+    );
+    router.push("/(public)/otp-input");
+  };
+
+  const handlePhoneNumberChange = (text: string) => {
+    setPhoneNumber(text);
+    if (text.length < 10) setError("Number must be at least 10 digits");
+    else setError("");
   };
 
   return (
@@ -82,17 +98,18 @@ function MobileInput() {
           <View style={styles.numberInput}>
             <TextInput
               value={phoneNumber}
-              onChangeText={setPhoneNumber}
+              onChangeText={handlePhoneNumberChange}
               keyboardType="phone-pad"
               style={styles.numberText}
             />
           </View>
         </View>
+        {error && <Text style={styles.error}>{error}</Text>}
 
         <TouchableOpacity
           style={[styles.nextButton, { opacity: phoneNumber ? 1 : 0.5 }]}
-          disabled={!phoneNumber}
-          onPress={() => router.push("/(public)/otp-input")}
+          disabled={!phoneNumber || !!error}
+          onPress={handleNext}
         >
           <Text style={styles.nextButtonText}>Next</Text>
         </TouchableOpacity>

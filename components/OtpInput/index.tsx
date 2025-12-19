@@ -1,12 +1,102 @@
-import React from "react";
-import { Text, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Link, useRouter } from "expo-router";
+import { useMemo, useRef, useState } from "react";
+import { Alert, Pressable, Text, TextInput, View } from "react-native";
+import styles from "./styles";
 
-const OtpInput = () => {
+export default function VerifyOtpScreen() {
+  const router = useRouter();
+  const inputRefs = useRef<TextInput[]>([]);
+  const [otp, setOtp] = useState<string[]>(["", "", "", ""]);
+  const handleTextChange = async (text: string, index: number) => {
+    if (!/^\d?$/.test(text)) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = text;
+    setOtp(newOtp);
+
+    // Move to next input
+    if (text && index < otp.length - 1) {
+      inputRefs.current[index + 1]?.focus();
+    }
+    if (index === otp.length - 1 && text) {
+      await AsyncStorage.setItem("isVerified", "true");
+      Alert.alert("OTP Verified Successfully!");
+      setTimeout(() => {
+        router.replace("/(protected)/(tabs)");
+      }, 1000);
+    }
+  };
+
+  const phoneNumber = useMemo(async () => {
+    const val = await AsyncStorage.getItem("mobileNumber");
+    return val;
+  }, []);
+
+  const handleKeyPress = (key: string, index: number) => {
+    if (key === "Backspace" && index > 0 && otp[index] === "") {
+      inputRefs.current[index - 1]?.focus();
+      setOtp((prevOtp) => {
+        const newOtp = [...prevOtp];
+        newOtp[index - 1] = "";
+        return newOtp;
+      });
+    }
+  };
+
   return (
-    <View>
-      <Text>OtpInput</Text>
+    <View style={styles.container}>
+      {/* Title */}
+      <Text style={styles.title}>Verify {phoneNumber}</Text>
+
+      {/* Subtitle */}
+      <Text style={styles.subtitle}>
+        Sent an OTP to
+        <Text style={styles.phone}> {phoneNumber}</Text>.{" "}
+        <Link href="/(public)/mobile-input" style={{ color: "#25D366" }}>
+          Wrong number?
+        </Link>
+      </Text>
+
+      {/* Code boxes */}
+      <View style={styles.codeContainer}>
+        {otp.map((digit, index) => {
+          return (
+            <View
+              key={index}
+              style={[
+                styles.codeBox,
+                { borderColor: !!digit ? "#25D366" : "#888" },
+              ]}
+            >
+              <TextInput
+                ref={(ref) => {
+                  if (ref) inputRefs.current[index] = ref;
+                }}
+                style={[styles.codeText]}
+                value={digit}
+                onChangeText={(text) => handleTextChange(text, index)}
+                onKeyPress={({ nativeEvent }) =>
+                  handleKeyPress(nativeEvent.key, index)
+                }
+                keyboardType="number-pad"
+                maxLength={1}
+                autoFocus={index === 0}
+                textAlign="center"
+              />
+            </View>
+          );
+        })}
+      </View>
+
+      <Text style={styles.hint}>Enter 6-digit code</Text>
+
+      {/* Actions */}
+      <View style={styles.actions}>
+        <Pressable onPress={() => Alert.alert("SMS sent successfully.")}>
+          <Text style={styles.link}>Resend SMS</Text>
+        </Pressable>
+      </View>
     </View>
   );
-};
-
-export default OtpInput;
+}
