@@ -1,9 +1,12 @@
-import React from 'react'
+import React from "react";
+import { Text, View } from "react-native";
 
 const StatusScreen = () => {
   return (
-    <div>StatusScreen</div>
-  )
-}
+    <View>
+      <Text>Status</Text>
+    </View>
+  );
+};
 
-export default StatusScreen
+export default StatusScreen;

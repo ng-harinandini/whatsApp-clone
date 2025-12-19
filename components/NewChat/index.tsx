@@ -1,12 +1,12 @@
 import React from "react";
 import { Text, View } from "react-native";
 
-const ChannelsScreen = () => {
+function NewChatScreen() {
   return (
     <View>
-      <Text>Channels</Text>
+      <Text>NewChatScreen</Text>
     </View>
   );
-};
+}
 
-export default ChannelsScreen;
+export default NewChatScreen;

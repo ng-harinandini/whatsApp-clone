@@ -12,12 +12,11 @@ export default function CustomButton({
       style={{
         marginTop: 60,
         backgroundColor: "#25D366",
-        padding: 15,
         borderRadius: 5,
       }}
     >
-      <Pressable onPress={onPress}>
-        <Text>{btnText}</Text>
+      <Pressable style={{ padding: 15 }} onPress={onPress}>
+        <Text style={{ color: "white", fontWeight: "bold" }}>{btnText}</Text>
       </Pressable>
     </View>
   );

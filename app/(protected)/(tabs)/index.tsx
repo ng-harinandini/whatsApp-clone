@@ -1,9 +1,5 @@
-import { Text, View } from "react-native";
+import Chats from "@/components/Chats";
 
 export default function ChatsScreen() {
-  return (
-    <View>
-      <Text>Chats Screen</Text>
-    </View>
-  );
+  return <Chats />;
 }
