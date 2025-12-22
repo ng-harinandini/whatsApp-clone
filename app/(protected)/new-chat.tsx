@@ -1,8 +1,8 @@
-import NewChatScreen from "@/components/NewChat";
+import ContactsScreen from "@/components/Contacts";
 import React from "react";
 
 function index() {
-  return <NewChatScreen />;
+  return <ContactsScreen />;
 }
 
 export default index;
