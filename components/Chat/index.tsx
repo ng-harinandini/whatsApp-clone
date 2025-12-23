@@ -1,28 +1,27 @@
 import { contacts } from "@/utils/contactData";
-import { EMOJI_CATEGORIES } from "@/utils/emojiData";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useNavigation } from "expo-router";
-import React, { useLayoutEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import {
-    FlatList,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import EmojiPicker from "./EmojiPicker";
 import styles from "./styles";
 
 function Chat() {
   const params = useLocalSearchParams<{ uuid: string }>();
   const navigation = useNavigation();
+  const scrollRef = React.useRef<ScrollView>(null);
   const currentChat = contacts.find((contact) => contact.uuid === params.uuid);
   const [message, setMessage] = useState<string | "">("");
-  const [selectedCategory, setSelectedCategory] = useState<number>(0);
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
   console.log(currentChat);
 
@@ -51,6 +50,10 @@ function Chat() {
     }
   }, [currentChat]);
 
+  useEffect(() => {
+    scrollRef.current?.scrollToEnd({ animated: true });
+  }, [messages]);
+
   if (!currentChat) {
     return null;
   }
@@ -74,15 +77,36 @@ function Chat() {
     setMessage(message + emoji);
   };
 
+  const handleLoadFromGallery = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (status !== "granted") {
+      alert("Media library permission is required");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      // sendMessage(result.assets[0].uri);
+    }
+  };
+
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={styles.container}
     >
       {/* Messages Area */}
       <ScrollView
+        ref={scrollRef}
         style={styles.messagesContainer}
         contentContainerStyle={styles.messagesContent}
+        keyboardShouldPersistTaps="handled"
       >
         {messages.map((msg) => (
           <View
@@ -116,7 +140,10 @@ function Chat() {
             onChangeText={setMessage}
             multiline
           />
-          <TouchableOpacity style={styles.attachButton}>
+          <TouchableOpacity
+            style={styles.attachButton}
+            onPress={handleLoadFromGallery}
+          >
             <MaterialIcons name="attachment" size={24} color="#667781" />
           </TouchableOpacity>
         </View>
@@ -125,76 +152,11 @@ function Chat() {
           <MaterialIcons name="send" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
-      <Modal
-        visible={showEmojiPicker}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowEmojiPicker(false)}
-      >
-        <View style={styles.emojiModalOverlay}>
-          <View style={styles.emojiModalContent}>
-            {/* Header */}
-            <View style={styles.emojiHeader}>
-              <Text style={styles.emojiHeaderText}>Select Emoji</Text>
-              <TouchableOpacity
-                onPress={() => setShowEmojiPicker(false)}
-                style={styles.closeButton}
-              >
-                <MaterialIcons name="close" size={24} color="#000" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Category Tabs */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.categoryTabs}
-              contentContainerStyle={styles.categoryTabsContent}
-            >
-              {EMOJI_CATEGORIES.map((category, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.categoryTab,
-                    selectedCategory === index && styles.categoryTabActive,
-                  ]}
-                  onPress={() => setSelectedCategory(index)}
-                >
-                  <Text
-                    style={[
-                      styles.categoryTabText,
-                      selectedCategory === index &&
-                        styles.categoryTabTextActive,
-                    ]}
-                  >
-                    {category.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            {/* Emoji Grid */}
-            <FlatList
-              data={EMOJI_CATEGORIES[selectedCategory].emojis}
-              keyExtractor={(item, index) => `${item}-${index}`}
-              numColumns={8}
-              contentContainerStyle={styles.emojiGridContent}
-              style={styles.emojiGrid}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.emojiButton}
-                  onPress={() => {
-                    handleEmojiSelect(item);
-                    setShowEmojiPicker(false);
-                  }}
-                >
-                  <Text style={styles.emojiText}>{item}</Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </View>
-      </Modal>
+      <EmojiPicker
+        showEmojiPicker={showEmojiPicker}
+        setShowEmojiPicker={setShowEmojiPicker}
+        handleEmojiSelect={handleEmojiSelect}
+      />
     </KeyboardAvoidingView>
   );
 }

@@ -67,6 +67,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     fontSize: 16,
     color: "#000",
+    maxHeight: 120, 
   },
   attachButton: {
     padding: 4,
