@@ -1,3 +1,4 @@
+import axiosInstance from "@/utils/axiosInstance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, useRouter } from "expo-router";
 import { useMemo, useRef, useState } from "react";
@@ -8,6 +9,12 @@ export default function VerifyOtpScreen() {
   const router = useRouter();
   const inputRefs = useRef<TextInput[]>([]);
   const [otp, setOtp] = useState<string[]>(["", "", "", ""]);
+
+  const phoneNumber = useMemo(async () => {
+    const val = await AsyncStorage.getItem("mobileNumber");
+    return val;
+  }, []);
+
   const handleTextChange = async (text: string, index: number) => {
     if (!/^\d?$/.test(text)) return;
 
@@ -22,16 +29,17 @@ export default function VerifyOtpScreen() {
     if (index === otp.length - 1 && text) {
       await AsyncStorage.setItem("isVerified", "true");
       Alert.alert("OTP Verified Successfully!");
-      setTimeout(() => {
-        router.replace("/(protected)/(tabs)");
-      }, 1000);
+      const phoneNumber = (await AsyncStorage.getItem("mobileNumber")) || "";
+      const [phoneCode, phone] = phoneNumber.split(" ");
+      const userData = { phoneCode, phone, name: "Nandini" };
+      const response = await axiosInstance.post("/users", userData);
+      if (response.status === 200) {
+        setTimeout(() => {
+          router.replace("/(protected)/(tabs)");
+        }, 1000);
+      }
     }
   };
-
-  const phoneNumber = useMemo(async () => {
-    const val = await AsyncStorage.getItem("mobileNumber");
-    return val;
-  }, []);
 
   const handleKeyPress = (key: string, index: number) => {
     if (key === "Backspace" && index > 0 && otp[index] === "") {

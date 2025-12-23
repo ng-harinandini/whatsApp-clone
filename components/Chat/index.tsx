@@ -23,7 +23,6 @@ function Chat() {
   const currentChat = contacts.find((contact) => contact.uuid === params.uuid);
   const [message, setMessage] = useState<string | "">("");
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
-  console.log(currentChat);
 
   const [messages, setMessages] = useState([
     { id: 1, text: "Hey! How are you?", sent: false, time: "10:30 AM" },
