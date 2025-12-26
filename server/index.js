@@ -15,16 +15,22 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
+  // console.log("CONNECTED:", socket.id);
 
   socket.on("sendMessage", (data) => {
-    io.emit("receiveMessage", data);
+    // console.log("SEND EVENT RECEIVED:", data);
+
+    socket.broadcast.emit("receiveMessage", {
+      ...data,
+      fromSocket: socket.id,
+    });
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+    console.log("DISCONNECTED:", socket.id);
   });
 });
+
 
 server.listen(3000, () => {
   console.log("WebSocket server running on port 3000");

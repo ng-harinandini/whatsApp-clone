@@ -1,18 +1,22 @@
+import { useUser } from "@/providers/UserContextProvider";
 import axiosInstance from "@/utils/axiosInstance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, useRouter } from "expo-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, Pressable, Text, TextInput, View } from "react-native";
 import styles from "./styles";
 
 export default function VerifyOtpScreen() {
   const router = useRouter();
+  const { setUser } = useUser();
   const inputRefs = useRef<TextInput[]>([]);
   const [otp, setOtp] = useState<string[]>(["", "", "", ""]);
+  const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
 
-  const phoneNumber = useMemo(async () => {
-    const val = await AsyncStorage.getItem("mobileNumber");
-    return val;
+  useEffect(() => {
+    AsyncStorage.getItem("mobileNumber").then((val) => {
+      if (val) setPhoneNumber(val);
+    });
   }, []);
 
   const handleTextChange = async (text: string, index: number) => {
@@ -31,9 +35,11 @@ export default function VerifyOtpScreen() {
       Alert.alert("OTP Verified Successfully!");
       const phoneNumber = (await AsyncStorage.getItem("mobileNumber")) || "";
       const [phoneCode, phone] = phoneNumber.split(" ");
-      const userData = { phoneCode, phone, name: "Nandini" };
+      const userData = { phoneCode, phone, name: "Amma" };
       const response = await axiosInstance.post("/users", userData);
-      if (response.status === 200) {
+      if (response?.data) {
+        setUser(response.data);
+        await AsyncStorage.setItem("userData", JSON.stringify(response.data));
         setTimeout(() => {
           router.replace("/(protected)/(tabs)");
         }, 1000);
