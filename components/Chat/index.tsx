@@ -66,6 +66,7 @@ function Chat() {
     if (!socket) return;
 
     socket.on("receiveMessage", (data) => {
+      if (data.senderId !== currentChat._id) return;
       setMessages((prev) => [
         ...prev,
         {
@@ -79,7 +80,7 @@ function Chat() {
         },
       ]);
     });
-  }, [socket]);
+  }, [socket, currentChat]);
 
   if (!currentChat) {
     return null;
