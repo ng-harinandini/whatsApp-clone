@@ -31,6 +31,9 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     socketRef.current = io(SOCKET_URL, {
       transports: ["websocket"],
+      auth: {
+        userId: user._id.toString(),
+      },
     });
 
     socketRef.current.on("connect", () => {
@@ -41,8 +44,6 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       setSocket(socketRef.current);
     });
 
-    
-
     socketRef.current.on("disconnect", () => {
       console.log("Socket disconnected");
       setSocket(null);
@@ -52,7 +53,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       socketRef.current?.disconnect();
       socketRef.current = null;
     };
-  }, [user]);
+  }, [user?._id]);
 
   return (
     <SocketContext.Provider value={{ socket }}>
