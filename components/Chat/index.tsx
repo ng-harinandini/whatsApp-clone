@@ -1,5 +1,6 @@
 import { useUser } from "@/providers/UserContextProvider";
 import { useSocket } from "@/providers/WebSocketProvider";
+import axiosInstance from "@/utils/axiosInstance";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -19,10 +20,13 @@ import EmojiPicker from "./EmojiPicker";
 import styles from "./styles";
 
 type MessageType = {
-  id: number;
+  _id: string;
+  chatId: string;
+  senderId: string;
+  receiverId: string;
   text: string;
   sent: boolean;
-  time: string;
+  createdAt: string;
 };
 
 function Chat() {
@@ -50,6 +54,30 @@ function Chat() {
     loadContacts();
   }, []);
 
+  useEffect(() => {
+    if (currentChat?._id && user?._id) {
+      onOpenChat();
+    }
+  }, [currentChat, user]);
+
+  const onOpenChat = async () => {
+    const response = await axiosInstance.get<MessageType[]>(
+      `/chats/${user?._id}/${currentChat?._id}/messages`
+    );
+    const formattedMessages: MessageType[] = response.data.map((msg: any) => ({
+      _id: msg._id,
+      chatId: msg.chatId,
+      senderId: msg.senderId,
+      receiverId: msg.receiverId,
+      text: msg.text,
+      sent: msg.senderId === user?._id,
+      createdAt: msg.createdAt,
+    }));
+
+    setMessages(formattedMessages);
+    // console.log(formattedMessages);
+  };
+
   useLayoutEffect(() => {
     if (currentChat?.name) {
       navigation.setOptions({
@@ -63,23 +91,29 @@ function Chat() {
   }, [messages]);
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !currentChat?._id) return;
 
-    socket.on("receiveMessage", (data) => {
-      if (data.senderId !== currentChat._id) return;
+    const handleReceiveMessage = (msg: any) => {
+      if (msg.senderId !== currentChat?._id) return;
+
       setMessages((prev) => [
         ...prev,
         {
-          id: prev.length + 1,
-          text: data.text,
+          _id: msg._id,
+          chatId: msg.chatId,
+          senderId: msg.senderId,
+          receiverId: msg.receiverId,
+          text: msg.text,
           sent: false,
-          time: new Date().toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "2-digit",
-          }),
+          createdAt: msg.createdAt,
         },
       ]);
-    });
+    };
+
+    socket.on("receiveMessage", handleReceiveMessage);
+    return () => {
+      socket.off("receiveMessage", handleReceiveMessage);
+    };
   }, [socket, currentChat]);
 
   if (!currentChat) {
@@ -89,16 +123,17 @@ function Chat() {
   const sendMessage = () => {
     if (message.trim()) {
       const newMessage = {
-        id: messages.length + 1,
+        _id: Date.now().toString(),
+        chatId: "",
+        senderId: user?._id!,
+        receiverId: currentChat?._id!,
         text: message,
         sent: true,
-        time: new Date().toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-        }),
+        createdAt: new Date().toISOString(),
       };
 
       socket?.emit("sendMessage", {
+        tempId: newMessage.createdAt,
         receiverId: currentChat._id,
         text: newMessage.text,
         senderId: user?._id,
@@ -109,6 +144,12 @@ function Chat() {
     }
   };
 
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
   const handleEmojiSelect = (emoji: string) => {
     setMessage(message + emoji);
   };
@@ -146,14 +187,14 @@ function Chat() {
       >
         {messages.map((msg) => (
           <View
-            key={msg.id}
+            key={msg._id}
             style={[
               styles.messageBubble,
               msg.sent ? styles.sentMessage : styles.receivedMessage,
             ]}
           >
             <Text style={styles.messageText}>{msg.text}</Text>
-            <Text style={styles.messageTime}>{msg.time}</Text>
+            <Text style={styles.messageTime}>{formatDate(msg.createdAt)}</Text>
           </View>
         ))}
       </ScrollView>
