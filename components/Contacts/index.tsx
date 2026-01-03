@@ -1,4 +1,6 @@
+import { useUser } from "@/providers/UserContextProvider";
 import axiosInstance from "@/utils/axiosInstance";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Contacts from "expo-contacts";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -16,6 +18,7 @@ type ContactsType = {
 
 function ContactsScreen() {
   const router = useRouter();
+  const { user } = useUser();
   const [contacts, setContacts] = useState<ContactsType | []>([]);
 
   async function syncContacts() {
@@ -47,7 +50,14 @@ function ContactsScreen() {
       const commonContacts = await axiosInstance.post("/contacts", {
         contacts: formattedContacts,
       });
-      setContacts(commonContacts.data);
+      const remContacts = commonContacts.data.filter(
+        (contact: { phone: string | undefined; }) => contact.phone !== user?.phone
+      );
+      await AsyncStorage.setItem(
+        "contacts",
+        JSON.stringify(remContacts)
+      );
+      setContacts(remContacts);
     } else {
       setContacts([]);
     }
@@ -55,7 +65,7 @@ function ContactsScreen() {
 
   useEffect(() => {
     syncContacts();
-  }, []);
+  }, [user]);
 
   const handleRedirect = (uuid: string) => {
     router.push({

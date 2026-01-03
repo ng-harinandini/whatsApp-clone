@@ -16,8 +16,8 @@ const SocketContext = createContext<SocketContextType>({
   socket: null,
 });
 
-// const SOCKET_URL = "http://172.16.17.27:3000";
-const SOCKET_URL = "http://localhost:3000";
+const SOCKET_URL = "http://192.168.43.142:3000";
+// const SOCKET_URL = "http://localhost:3000";
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useUser();

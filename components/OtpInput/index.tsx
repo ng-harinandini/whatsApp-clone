@@ -1,5 +1,3 @@
-import { useUser } from "@/providers/UserContextProvider";
-import axiosInstance from "@/utils/axiosInstance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -8,7 +6,6 @@ import styles from "./styles";
 
 export default function VerifyOtpScreen() {
   const router = useRouter();
-  const { setUser } = useUser();
   const inputRefs = useRef<TextInput[]>([]);
   const [otp, setOtp] = useState<string[]>(["", "", "", ""]);
   const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
@@ -31,19 +28,19 @@ export default function VerifyOtpScreen() {
       inputRefs.current[index + 1]?.focus();
     }
     if (index === otp.length - 1 && text) {
-      await AsyncStorage.setItem("isVerified", "true");
       Alert.alert("OTP Verified Successfully!");
-      const phoneNumber = (await AsyncStorage.getItem("mobileNumber")) || "";
-      const [phoneCode, phone] = phoneNumber.split(" ");
-      const userData = { phoneCode, phone, name: "Amma" };
-      const response = await axiosInstance.post("/users", userData);
-      if (response?.data) {
-        setUser(response.data);
-        await AsyncStorage.setItem("userData", JSON.stringify(response.data));
-        setTimeout(() => {
-          router.replace("/(protected)/(tabs)");
-        }, 1000);
-      }
+      router.push("/(public)/profile");
+      // const phoneNumber = (await AsyncStorage.getItem("mobileNumber")) || "";
+      // const [phoneCode, phone] = phoneNumber.split(" ");
+      // const userData = { phoneCode, phone, name: "Amma" };
+      // const response = await axiosInstance.post("/users", userData);
+      // if (response?.data) {
+      //   setUser(response.data);
+      //   await AsyncStorage.setItem("userData", JSON.stringify(response.data));
+      //   setTimeout(() => {
+      //     router.replace("/(protected)/(tabs)");
+      //   }, 1000);
+      // }
     }
   };
 
