@@ -1,6 +1,6 @@
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { SafeAreaView } from "react-native-safe-area-context";
-import First from "./first";
+import First from ".";
 import Second from "./second";
 import Third from "./third";
 
@@ -15,7 +15,7 @@ export default function TopTabsLayout() {
         }}
       >
         <Tab.Screen
-          name="first"
+          name="index"
           component={First}
           options={{ title: "First" }}
         />
