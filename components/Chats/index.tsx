@@ -1,8 +1,8 @@
 import { useUser } from "@/providers/UserContextProvider";
 import axiosInstance from "@/utils/axiosInstance";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -19,20 +19,23 @@ function Chats() {
   const [loading, setLoading] = useState<boolean>(false);
   const [chats, setChats] = useState<any>([]);
 
-  useEffect(() => {
-    if (user?._id) {
-      fetchChats();
-    }
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      if (user?._id) fetchChats();
+    }, [user?._id])
+  );
 
   const fetchChats = async () => {
-    setLoading(true);
-    console.log(user);
-
-    const response = await axiosInstance.get(`/all/chats/${user?._id}`);
-    console.log(response.data);
-    setChats(response.data.chats || []);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get(`/all/chats/${user?._id}`);
+      setChats(response.data.chats || []);
+    } catch (e) {
+      console.log(e);
+      setChats([]);
+    } finally {
+      setLoading(false);
+    }
   };
   const formatDate = (date: string) => {
     return new Date(date).toLocaleTimeString("en-US", {
