@@ -7,10 +7,10 @@ const ChannelsScreen = () => {
   return (
     <View>
       <Text>Channels</Text>
-      <Text onPress={() => router.push("/(protected)/(top-tabs)/index")}>
+      <Text onPress={() => router.push("/(protected)/(top-tabs)")}>
         Go to Top Navigation Bar
       </Text>
-      <Text onPress={() => router.push("/(protected)/(drawer)/index")}>
+      <Text onPress={() => router.push("/(protected)/(drawer)")}>
         Go to Drawer Navigation
       </Text>
     </View>
