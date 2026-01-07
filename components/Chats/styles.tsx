@@ -66,6 +66,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
   },
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 80,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#555",
+  },
+  emptySubText: {
+    marginTop: 4,
+    fontSize: 16,
+    color: "#25D366",
+  },
 });
 
 export default styles;

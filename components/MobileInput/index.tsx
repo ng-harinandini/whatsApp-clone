@@ -41,6 +41,7 @@ function MobileInput() {
   const handlePhoneNumberChange = (text: string) => {
     setPhoneNumber(text);
     if (text.length < 10) setError("Number must be at least 10 digits");
+    if (text.length > 10) setError("Number must be 10 digits");
     else setError("");
   };
 

@@ -28,19 +28,7 @@ export default function VerifyOtpScreen() {
       inputRefs.current[index + 1]?.focus();
     }
     if (index === otp.length - 1 && text) {
-      Alert.alert("OTP Verified Successfully!");
       router.push("/(public)/profile");
-      // const phoneNumber = (await AsyncStorage.getItem("mobileNumber")) || "";
-      // const [phoneCode, phone] = phoneNumber.split(" ");
-      // const userData = { phoneCode, phone, name: "Amma" };
-      // const response = await axiosInstance.post("/users", userData);
-      // if (response?.data) {
-      //   setUser(response.data);
-      //   await AsyncStorage.setItem("userData", JSON.stringify(response.data));
-      //   setTimeout(() => {
-      //     router.replace("/(protected)/(tabs)");
-      //   }, 1000);
-      // }
     }
   };
 

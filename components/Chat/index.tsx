@@ -175,7 +175,8 @@ function Chat() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior="padding"
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       style={styles.container}
     >
       {/* Messages Area */}

@@ -85,6 +85,14 @@ function Chats() {
             </View>
           </Pressable>
         )}
+        ListEmptyComponent={
+          !loading && (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No chats found</Text>
+              <Text style={styles.emptySubText}>Start a new conversation</Text>
+            </View>
+          )
+        }
       />
       <Pressable
         style={styles.fab}

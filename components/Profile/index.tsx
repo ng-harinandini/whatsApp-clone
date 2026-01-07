@@ -5,14 +5,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import styles from "./styles";
 
@@ -39,16 +39,23 @@ function ProfileScreen() {
     const phoneNumber = (await AsyncStorage.getItem("mobileNumber")) || "";
     const [phoneCode, phone] = phoneNumber.split(" ");
     const userData = { phoneCode, phone, name: name, status: about };
-    const response = await axiosInstance.post("/users", userData);
-    if (response?.data) {
-      setUser(response.data);
-      await AsyncStorage.setItem("isVerified", "true");
-      await AsyncStorage.setItem("userData", JSON.stringify(response.data));
-      router.replace("/(protected)/(tabs)");
-    } else {
-      console.log(response);
+    try {
+      const response = await axiosInstance.post("/users", userData);
+      if (response?.status === 201) {
+        setUser(response.data);
+        await AsyncStorage.setItem("isVerified", "true");
+        await AsyncStorage.setItem("userData", JSON.stringify(response.data));
+        router.replace("/(protected)/(tabs)");
+      }
+    } catch (error: any) {
+      if (error?.response?.status === 409) {
+        Alert.alert("User Exists", error?.response.data.message);
+      } else {
+        Alert.alert("Error", "Unable to create user");
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
