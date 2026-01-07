@@ -1,16 +1,19 @@
 import { AntDesign, Feather, FontAwesome6 } from "@expo/vector-icons";
 import {
-    CameraMode,
-    CameraType,
-    CameraView,
-    useCameraPermissions,
-    useMicrophonePermissions,
+  CameraMode,
+  CameraType,
+  CameraView,
+  useCameraPermissions,
+  useMicrophonePermissions,
 } from "expo-camera";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { Button, Pressable, Text, View } from "react-native";
 import styles from "./styles";
 
 function CameraScreen() {
+  const router = useRouter();
+  const params = useLocalSearchParams();
   const [permission, requestPermission] = useCameraPermissions();
   const [micPermission, requestMicPermission] = useMicrophonePermissions();
   const [isVideoRecording, setIsVideoRecording] = useState<boolean>(false);
@@ -49,7 +52,7 @@ function CameraScreen() {
           />
         ) : (
           <Text style={{ textAlign: "center", color: "#25D366" }}>
-            Enable camera permission from app settings
+            Enable camera & microphone permission from app settings
           </Text>
         )}
       </View>
@@ -68,6 +71,14 @@ function CameraScreen() {
     const photo = await ref.current?.takePictureAsync();
     // if (photo?.uri) setUri(photo.uri);
     console.log(photo?.uri);
+    router.replace({
+      pathname: "/(protected)/chat/[uuid]",
+      params: {
+        uuid: String(params?.id),
+        mediaUri: photo?.uri,
+        mediaType: "image",
+      },
+    });
   };
 
   const recordVideo = async () => {

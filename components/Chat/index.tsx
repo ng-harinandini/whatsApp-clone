@@ -30,8 +30,17 @@ type MessageType = {
   createdAt: string;
 };
 
+type searchParams = {
+  uuid: string;
+  mediaType?: string;
+  mediaUri?: "picture" | "video";
+};
+
 function Chat() {
-  const params = useLocalSearchParams<{ uuid: string }>();
+  const params = useLocalSearchParams<searchParams>();
+  const { mediaUri, mediaType } = params;
+  console.log(params);
+
   const navigation = useNavigation();
   const { user } = useUser();
   const router = useRouter();
@@ -144,14 +153,14 @@ function Chat() {
       setMessages([...messages, newMessage]);
       setMessage("");
     }
-  };
+  }
 
   const handleEmojiSelect = (emoji: string) => {
     setMessage(message + emoji);
   };
 
   const handleCamera = () => {
-    router.push("/(protected)/camera");
+    router.push(`/(protected)/camera?id=${currentChat?._id}`);
   };
 
   const handleLoadFromGallery = async () => {
@@ -210,7 +219,10 @@ function Chat() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+        <TouchableOpacity
+          style={styles.sendButton}
+          onPress={() => sendMessage()}
+        >
           <MaterialIcons name="send" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
