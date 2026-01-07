@@ -8,15 +8,15 @@ import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
+  FlatList,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import EmojiPicker from "./EmojiPicker";
+import PreviousChats from "./PreviousChats";
 import styles from "./styles";
 
 type MessageType = {
@@ -34,7 +34,7 @@ function Chat() {
   const navigation = useNavigation();
   const { user } = useUser();
   const { socket } = useSocket();
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<FlatList<MessageType> | null>(null);
   const [contacts, setContacts] = useState<any[]>([]);
 
   const currentChat = contacts.find((contact) => contact._id === params.uuid);
@@ -144,12 +144,6 @@ function Chat() {
     }
   };
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  };
   const handleEmojiSelect = (emoji: string) => {
     setMessage(message + emoji);
   };
@@ -179,26 +173,7 @@ function Chat() {
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       style={styles.container}
     >
-      {/* Messages Area */}
-      <ScrollView
-        ref={scrollRef}
-        style={styles.messagesContainer}
-        contentContainerStyle={styles.messagesContent}
-        keyboardShouldPersistTaps="handled"
-      >
-        {messages.map((msg) => (
-          <View
-            key={msg._id}
-            style={[
-              styles.messageBubble,
-              msg.sent ? styles.sentMessage : styles.receivedMessage,
-            ]}
-          >
-            <Text style={styles.messageText}>{msg.text}</Text>
-            <Text style={styles.messageTime}>{formatDate(msg.createdAt)}</Text>
-          </View>
-        ))}
-      </ScrollView>
+      <PreviousChats messages={messages} scrollRef={scrollRef} />
 
       {/* Input Bar */}
       <View style={styles.inputBar}>
