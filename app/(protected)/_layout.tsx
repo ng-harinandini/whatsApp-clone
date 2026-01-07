@@ -16,6 +16,7 @@ function ProtectedLayout() {
         <Stack.Screen name="chat/[uuid]" />
         <Stack.Screen name="(top-tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+        <Stack.Screen name="camera" options={{ headerShown: false }} />
       </Stack>
     </SocketProvider>
   );

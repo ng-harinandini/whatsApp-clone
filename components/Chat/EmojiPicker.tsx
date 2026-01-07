@@ -2,12 +2,12 @@ import { EMOJI_CATEGORIES } from "@/utils/emojiData";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React from "react";
 import {
-    FlatList,
-    Modal,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  FlatList,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import styles from "./styles";
 
@@ -83,7 +83,6 @@ function EmojiPicker({
                 style={styles.emojiButton}
                 onPress={() => {
                   handleEmojiSelect(item);
-                  setShowEmojiPicker(false);
                 }}
               >
                 <Text style={styles.emojiText}>{item}</Text>

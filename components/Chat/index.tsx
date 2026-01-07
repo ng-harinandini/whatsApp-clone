@@ -1,11 +1,12 @@
 import { useUser } from "@/providers/UserContextProvider";
 import { useSocket } from "@/providers/WebSocketProvider";
 import axiosInstance from "@/utils/axiosInstance";
+import { Ionicons } from "@expo/vector-icons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
-import { useLocalSearchParams, useNavigation } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   FlatList,
@@ -33,6 +34,7 @@ function Chat() {
   const params = useLocalSearchParams<{ uuid: string }>();
   const navigation = useNavigation();
   const { user } = useUser();
+  const router = useRouter();
   const { socket } = useSocket();
   const scrollRef = useRef<FlatList<MessageType> | null>(null);
   const [contacts, setContacts] = useState<any[]>([]);
@@ -148,6 +150,10 @@ function Chat() {
     setMessage(message + emoji);
   };
 
+  const handleCamera = () => {
+    router.push("/(protected)/camera");
+  };
+
   const handleLoadFromGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
@@ -198,6 +204,9 @@ function Chat() {
             onPress={handleLoadFromGallery}
           >
             <MaterialIcons name="attachment" size={24} color="#667781" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.attachButton} onPress={handleCamera}>
+            <Ionicons name="camera" size={22} color="#667781" />
           </TouchableOpacity>
         </View>
 
