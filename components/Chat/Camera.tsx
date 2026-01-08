@@ -7,7 +7,7 @@ import {
   useMicrophonePermissions,
 } from "expo-camera";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, Pressable, Text, View } from "react-native";
 import styles from "./styles";
 

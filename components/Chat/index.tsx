@@ -1,11 +1,12 @@
 import { useUser } from "@/providers/UserContextProvider";
 import { useSocket } from "@/providers/WebSocketProvider";
 import axiosInstance from "@/utils/axiosInstance";
+import { FontAwesome6, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { View } from "react-native";
-import ChatInput from "./ChatInput";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { TextInput, TouchableOpacity, View } from "react-native";
 import EmojiPicker from "./EmojiPicker";
 import PreviousChats from "./PreviousChats";
 import styles from "./styles";
@@ -20,14 +21,8 @@ type MessageType = {
   createdAt: string;
 };
 
-type searchParams = {
-  uuid: string;
-  mediaType?: string;
-  mediaUri?: "picture" | "video";
-};
-
 function Chat() {
-  const params = useLocalSearchParams<searchParams>();
+  const params = useLocalSearchParams<{ uuid: string }>();
   const navigation = useNavigation();
   const { user } = useUser();
   const router = useRouter();
@@ -152,16 +147,66 @@ function Chat() {
     setMessage(message + emoji);
   };
 
+  const handleCamera = () => {
+    router.push("/(protected)/camera");
+  };
+
+  const handleLoadFromGallery = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (status !== "granted") {
+      alert("Media library permission is required");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      // sendMessage(result.assets[0].uri);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <PreviousChats messages={messages} scrollRef={scrollRef} />
-      <ChatInput
-        currentChatId={currentChat?._id}
-        setShowEmojiPicker={setShowEmojiPicker}
-        sendMessage={sendMessage}
-        message={message}
-        setMessage={setMessage}
-      />
+
+      {/* Input Bar */}
+      <View style={styles.inputBar}>
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={() => setShowEmojiPicker(true)}
+        >
+          <FontAwesome6 name="face-smile" size={24} color="#667781" />
+        </TouchableOpacity>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Message"
+            placeholderTextColor="#8696A0"
+            value={message}
+            onChangeText={setMessage}
+            multiline
+          />
+          <TouchableOpacity
+            style={styles.attachButton}
+            onPress={handleLoadFromGallery}
+          >
+            <MaterialIcons name="attachment" size={24} color="#667781" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.attachButton} onPress={handleCamera}>
+            <Ionicons name="camera" size={22} color="#667781" />
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+          <MaterialIcons name="send" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
       <EmojiPicker
         showEmojiPicker={showEmojiPicker}
         setShowEmojiPicker={setShowEmojiPicker}
