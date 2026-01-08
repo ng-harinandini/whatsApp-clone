@@ -1,21 +1,11 @@
 import { useUser } from "@/providers/UserContextProvider";
 import { useSocket } from "@/providers/WebSocketProvider";
 import axiosInstance from "@/utils/axiosInstance";
-import { Ionicons } from "@expo/vector-icons";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import {
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { View } from "react-native";
+import ChatInput from "./ChatInput";
 import EmojiPicker from "./EmojiPicker";
 import PreviousChats from "./PreviousChats";
 import styles from "./styles";
@@ -38,14 +28,11 @@ type searchParams = {
 
 function Chat() {
   const params = useLocalSearchParams<searchParams>();
-  const { mediaUri, mediaType } = params;
-  console.log(params);
-
   const navigation = useNavigation();
   const { user } = useUser();
   const router = useRouter();
   const { socket } = useSocket();
-  const scrollRef = useRef<FlatList<MessageType> | null>(null);
+  const scrollRef = useRef<any>(null);
   const [contacts, setContacts] = useState<any[]>([]);
 
   const currentChat = contacts.find((contact) => contact._id === params.uuid);
@@ -86,7 +73,6 @@ function Chat() {
     }));
 
     setMessages(formattedMessages);
-    // console.log(formattedMessages);
   };
 
   useLayoutEffect(() => {
@@ -98,7 +84,10 @@ function Chat() {
   }, [currentChat]);
 
   useEffect(() => {
-    scrollRef.current?.scrollToEnd({ animated: true });
+    // Scroll to end when messages update
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd?.({ animated: true });
+    }, 100);
   }, [messages]);
 
   useEffect(() => {
@@ -106,6 +95,10 @@ function Chat() {
 
     const handleReceiveMessage = (msg: any) => {
       if (msg.senderId !== currentChat?._id) return;
+
+      socket.emit("message_delivered", {
+        messageId: msg._id,
+      });
 
       setMessages((prev) => [
         ...prev,
@@ -153,85 +146,28 @@ function Chat() {
       setMessages([...messages, newMessage]);
       setMessage("");
     }
-  }
+  };
 
   const handleEmojiSelect = (emoji: string) => {
     setMessage(message + emoji);
   };
 
-  const handleCamera = () => {
-    router.push(`/(protected)/camera?id=${currentChat?._id}`);
-  };
-
-  const handleLoadFromGallery = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (status !== "granted") {
-      alert("Media library permission is required");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      // sendMessage(result.assets[0].uri);
-    }
-  };
-
   return (
-    <KeyboardAvoidingView
-      behavior="padding"
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <PreviousChats messages={messages} scrollRef={scrollRef} />
-
-      {/* Input Bar */}
-      <View style={styles.inputBar}>
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() => setShowEmojiPicker(true)}
-        >
-          <FontAwesome6 name="face-smile" size={24} color="#667781" />
-        </TouchableOpacity>
-
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Message"
-            placeholderTextColor="#8696A0"
-            value={message}
-            onChangeText={setMessage}
-            multiline
-          />
-          <TouchableOpacity
-            style={styles.attachButton}
-            onPress={handleLoadFromGallery}
-          >
-            <MaterialIcons name="attachment" size={24} color="#667781" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.attachButton} onPress={handleCamera}>
-            <Ionicons name="camera" size={22} color="#667781" />
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity
-          style={styles.sendButton}
-          onPress={() => sendMessage()}
-        >
-          <MaterialIcons name="send" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
+      <ChatInput
+        currentChatId={currentChat?._id}
+        setShowEmojiPicker={setShowEmojiPicker}
+        sendMessage={sendMessage}
+        message={message}
+        setMessage={setMessage}
+      />
       <EmojiPicker
         showEmojiPicker={showEmojiPicker}
         setShowEmojiPicker={setShowEmojiPicker}
         handleEmojiSelect={handleEmojiSelect}
       />
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
