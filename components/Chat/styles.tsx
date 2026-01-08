@@ -46,8 +46,9 @@ const styles = StyleSheet.create({
   inputBar: {
     flexDirection: "row",
     alignItems: "center",
-    // padding: 8,
+    padding: 8,
     minHeight: 56,
+    paddingBottom: 16,
     // backgroundColor: "#F0F0F0",
     borderTopWidth: 1,
     borderTopColor: "#D1D1D1",
@@ -57,8 +58,10 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#edeae6ff",
     borderRadius: 20,
+    borderColor: "#D1D1D1",
+    borderWidth: 2,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,

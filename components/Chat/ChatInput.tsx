@@ -3,7 +3,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React from "react";
 import { TextInput, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { KeyboardStickyView } from "react-native-keyboard-controller";
 import styles from "./styles";
 
 type ChatInputProps = {
@@ -46,7 +46,7 @@ function ChatInput({
   };
 
   return (
-    <SafeAreaView edges={["bottom"]}>
+    <KeyboardStickyView>
       <View style={styles.inputBar}>
         <TouchableOpacity
           style={styles.iconButton}
@@ -82,7 +82,7 @@ function ChatInput({
           <MaterialIcons name="send" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </KeyboardStickyView>
   );
 }
 
