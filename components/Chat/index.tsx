@@ -10,13 +10,16 @@ import EmojiPicker from "./EmojiPicker";
 import PreviousChats from "./PreviousChats";
 import styles from "./styles";
 
+type MessageStatus = "sent" | "delivered" | "seen";
+
 type MessageType = {
   _id: string;
   chatId: string;
+  tempId?: string;
   senderId: string;
   receiverId: string;
   text: string;
-  sent: boolean;
+  status: MessageStatus;
   createdAt: string;
 };
 
@@ -62,7 +65,7 @@ function Chat() {
       senderId: msg.senderId,
       receiverId: msg.receiverId,
       text: msg.text,
-      sent: msg.senderId === user?._id,
+      status: msg.status,
       createdAt: msg.createdAt,
     }));
 
@@ -85,15 +88,10 @@ function Chat() {
   }, [messages]);
 
   useEffect(() => {
-    if (!socket || !currentChat?._id) return;
+    if (!socket || !currentChat?._id || !user?._id) return;
 
-    const handleReceiveMessage = (msg: any) => {
+    const handleReceiveMessage = (msg: MessageType) => {
       if (msg.senderId !== currentChat?._id) return;
-
-      socket.emit("message_delivered", {
-        messageId: msg._id,
-      });
-
       setMessages((prev) => [
         ...prev,
         {
@@ -102,36 +100,55 @@ function Chat() {
           senderId: msg.senderId,
           receiverId: msg.receiverId,
           text: msg.text,
-          sent: false,
+          status: msg.status,
           createdAt: msg.createdAt,
         },
       ]);
     };
 
+    const handleDelivered = (data: {
+      tempId: string;
+      messageId: string;
+      status: MessageStatus;
+    }) => {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.tempId === data.tempId
+            ? { ...msg, status: data.status, _id: data.messageId }
+            : msg
+        )
+      );
+    };
+
+    socket.on("message_status_update", handleDelivered);
     socket.on("receiveMessage", handleReceiveMessage);
     return () => {
       socket.off("receiveMessage", handleReceiveMessage);
+      socket.off("message_status_update", handleDelivered);
     };
   }, [socket, currentChat]);
+
 
   if (!currentChat) {
     return null;
   }
 
   const sendMessage = () => {
+    if (!user?._id || !currentChat?._id) return;
     if (message.trim()) {
-      const newMessage = {
+      const newMessage: MessageType = {
         _id: Date.now().toString(),
         chatId: "",
-        senderId: user?._id!,
-        receiverId: currentChat?._id!,
+        tempId: Date.now().toString(),
+        senderId: user?._id,
+        receiverId: currentChat?._id,
         text: message,
-        sent: true,
+        status: "sent",
         createdAt: new Date().toISOString(),
       };
 
       socket?.emit("sendMessage", {
-        tempId: newMessage.createdAt,
+        tempId: newMessage.tempId,
         receiverId: currentChat._id,
         text: newMessage.text,
         senderId: user?._id,

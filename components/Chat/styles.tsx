@@ -39,6 +39,9 @@ const styles = StyleSheet.create({
   },
   messageTime: {
     fontSize: 11,
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
     color: "#667781",
     marginTop: 4,
     alignSelf: "flex-end",
