@@ -47,9 +47,10 @@ function PreviousChats({ messages, scrollRef }: PreviousChatsProps) {
           ]}
         >
           <Text style={styles.messageText}>{item.text}</Text>
-          <Text style={styles.messageTime}>{`${formatDate(
-            item.createdAt
-          )} ${renderTicks(item.status)}`}</Text>
+          <Text style={styles.messageTime}>
+            {`${formatDate(item.createdAt)}`}{" "}
+            {item?.sent ? renderTicks(item.status) : null}
+          </Text>
         </View>
       )}
     />

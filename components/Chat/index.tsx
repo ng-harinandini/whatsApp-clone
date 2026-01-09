@@ -2,7 +2,6 @@ import { useUser } from "@/providers/UserContextProvider";
 import { useSocket } from "@/providers/WebSocketProvider";
 import axiosInstance from "@/utils/axiosInstance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { View } from "react-native";
@@ -145,29 +144,6 @@ function Chat() {
 
   const handleEmojiSelect = (emoji: string) => {
     setMessage(message + emoji);
-  };
-
-  const handleCamera = () => {
-    router.push("/(protected)/camera");
-  };
-
-  const handleLoadFromGallery = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (status !== "granted") {
-      alert("Media library permission is required");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      // sendMessage(result.assets[0].uri);
-    }
   };
 
   return (
