@@ -1,4 +1,4 @@
-import { Dimensions, StyleSheet } from "react-native";
+import { Dimensions, Platform, StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
   container: {
@@ -77,6 +77,11 @@ const styles = StyleSheet.create({
     color: "#000",
     maxHeight: 120,
     minHeight: 40,
+    ...(Platform.OS === "web" && {
+      outlineStyle: "none",
+      outlineWidth: 0,
+      boxShadow: "none",
+    }),
   },
   attachButton: {
     padding: 4,

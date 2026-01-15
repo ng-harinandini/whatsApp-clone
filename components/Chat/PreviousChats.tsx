@@ -32,29 +32,19 @@ function PreviousChats({ messages, scrollRef }: PreviousChatsProps) {
     if (status === "sent") {
       return <Ionicons name="checkmark" size={16} color="#8696a0" />;
     }
-
-    if (status === "delivered") {
+    if (status === "delivered" || status === "seen") {
       return (
         <View style={{ flexDirection: "row" }}>
-          <Ionicons name="checkmark" size={16} color="#8696a0" />
           <Ionicons
             name="checkmark"
             size={16}
-            color="#8696a0"
-            style={{ marginLeft: -8 }}
+            color={status === "delivered" ? "#8696a0" : "#179ad2ff"}
           />
-        </View>
-      );
-    }
-    if (status === "seen") {
-      return (
-        <View style={{ flexDirection: "row", marginLeft: -6 }}>
-          <Ionicons name="checkmark" size={16} color="#53bdeb" />
           <Ionicons
             name="checkmark"
             size={16}
-            color="#53bdeb"
-            style={{ marginLeft: -8 }}
+            color={status === "delivered" ? "#8696a0" : "#179ad2ff"}
+            style={{ marginLeft: -11 }}
           />
         </View>
       );
@@ -67,7 +57,6 @@ function PreviousChats({ messages, scrollRef }: PreviousChatsProps) {
       data={messages}
       keyboardShouldPersistTaps="handled"
       keyExtractor={(item) => item._id}
-      contentContainerStyle={{ paddingBottom: 80 }}
       renderItem={({ item }) => {
         // console.log(item);
         const isMe = user?._id === item.senderId;
