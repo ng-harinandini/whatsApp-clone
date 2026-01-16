@@ -4,7 +4,7 @@ import axiosInstance from "@/utils/axiosInstance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { View } from "react-native";
+import { Alert, View } from "react-native";
 import ChatInput from "./ChatInput";
 import EmojiPicker from "./EmojiPicker";
 import PreviousChats from "./PreviousChats";
@@ -18,7 +18,8 @@ type MessageType = {
   tempId?: string;
   senderId: string;
   receiverId: string;
-  text: string;
+  text?: string;
+  imageUrl?: string;
   status: MessageStatus;
   createdAt: string;
 };
@@ -37,6 +38,7 @@ function Chat() {
   const [message, setMessage] = useState<string | "">("");
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
   const [messages, setMessages] = useState<MessageType[]>([]);
+  const [uploading, setUploading] = useState<boolean>(false);
 
   useEffect(() => {
     const loadContacts = async () => {
@@ -68,15 +70,17 @@ function Chat() {
         `/chats/${user?._id}/${currentChat?._id}/messages`
       );
 
-      const formattedMessages: MessageType[] = response.data.map((msg: any) => ({
-        _id: msg._id,
-        chatId: msg.chatId,
-        senderId: msg.senderId,
-        receiverId: msg.receiverId,
-        text: msg.text,
-        status: msg.status,
-        createdAt: msg.createdAt,
-      }));
+      const formattedMessages: MessageType[] = response.data.map(
+        (msg: any) => ({
+          _id: msg._id,
+          chatId: msg.chatId,
+          senderId: msg.senderId,
+          receiverId: msg.receiverId,
+          text: msg.text,
+          status: msg.status,
+          createdAt: msg.createdAt,
+        })
+      );
 
       setMessages(formattedMessages);
 
@@ -90,7 +94,8 @@ function Chat() {
 
         // Check if there are any unread messages from the other user
         const unreadMessages = response.data.filter(
-          (msg: any) => msg.senderId === currentChat?._id && msg.status !== "seen"
+          (msg: any) =>
+            msg.senderId === currentChat?._id && msg.status !== "seen"
         );
 
         // Mark messages as seen if there are unread messages
@@ -128,7 +133,7 @@ function Chat() {
 
     const handleConnect = () => {
       // console.log("Socket connected");
-      
+
       // Resend queued messages
       if (messageQueueRef.current.length > 0) {
         messageQueueRef.current.forEach((msg) => {
@@ -145,7 +150,7 @@ function Chat() {
 
     const handleDisconnect = () => {
       // console.log("Socket disconnected");
-      
+
       // Mark all non-sent messages as pending
       setMessages((prev) =>
         prev.map((msg) =>
@@ -184,7 +189,9 @@ function Chat() {
 
       setMessages((prev) => {
         // Check if message already exists
-        const exists = prev.some((m) => m._id === msg._id || m.tempId === msg.tempId);
+        const exists = prev.some(
+          (m) => m._id === msg._id || m.tempId === msg.tempId
+        );
         if (exists) return prev;
 
         return [
@@ -226,18 +233,31 @@ function Chat() {
       );
     };
 
-    const handleMessagesSeen = ({ chatId, receiverId }: { chatId?: string; receiverId?: string }) => {
+    const handleMessagesSeen = ({
+      chatId,
+      receiverId,
+    }: {
+      chatId?: string;
+      receiverId?: string;
+    }) => {
       // console.log("Messages seen event received:", { chatId, receiverId, myId: user?._id });
-      
+
       setMessages((prev) =>
         prev.map((msg) => {
           // Update messages I sent that were seen by the receiver
           const isMySentMessage = msg.senderId === user?._id;
-          const isToThisReceiver = msg.receiverId === receiverId || msg.receiverId === currentChat?._id;
+          const isToThisReceiver =
+            msg.receiverId === receiverId ||
+            msg.receiverId === currentChat?._id;
           const isInThisChat = chatId ? msg.chatId === chatId : true;
           const notAlreadySeen = msg.status !== "seen";
-          
-          if (isMySentMessage && isToThisReceiver && isInThisChat && notAlreadySeen) {
+
+          if (
+            isMySentMessage &&
+            isToThisReceiver &&
+            isInThisChat &&
+            notAlreadySeen
+          ) {
             // console.log(`Updating message ${msg._id} to seen`);
             return { ...msg, status: "seen" };
           }
@@ -246,7 +266,13 @@ function Chat() {
       );
     };
 
-    const handleMessageError = ({ tempId, error }: { tempId: string; error: string }) => {
+    const handleMessageError = ({
+      tempId,
+      error,
+    }: {
+      tempId: string;
+      error: string;
+    }) => {
       // console.error("Message error:", error);
       // You can show an error indicator in the UI
       setMessages((prev) =>
@@ -273,6 +299,67 @@ function Chat() {
   if (!currentChat) {
     return null;
   }
+
+  const sendImage = async (imageUri: string) => {
+    setUploading(true);
+    console.log("reached");
+    
+
+    try {
+      // 1. Upload image to server
+      const formData = new FormData();
+      const filename = imageUri.split("/").pop() || "image.jpg";
+
+      formData.append("image", {
+        uri: imageUri,
+        name: filename,
+        type: "image/jpeg",
+      } as any);
+
+      console.log(formData);
+      
+      const uploadResponse = await axiosInstance.post(
+        "/upload-image",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      const imageUrl = uploadResponse.data.imageUrl; // e.g., "/uploads/123456-photo.jpg"
+
+      // 2. Send message with image URL
+      const tempId = `${Date.now()}-${Math.random()}`;
+      const newMessage: MessageType = {
+        _id: tempId,
+        chatId: chatIdRef.current || "",
+        tempId: tempId,
+        senderId: user?._id!,
+        receiverId: currentChat._id,
+        text: message.trim(),
+        imageUrl: imageUrl,
+        status: "sent",
+        createdAt: new Date().toISOString(),
+      };
+
+      setMessages((prev) => [...prev, newMessage]);
+      setMessage("");
+
+      if (socket?.connected) {
+        socket.emit("sendMessage", {
+          tempId,
+          senderId: user?._id,
+          receiverId: currentChat._id,
+          text: message.trim(),
+          imageUrl: imageUrl,
+        });
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to send image");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const sendMessage = () => {
     if (!user?._id || !currentChat?._id) return;
@@ -322,6 +409,7 @@ function Chat() {
         message={message}
         setMessage={setMessage}
         sendMessage={sendMessage}
+        sendImage={sendImage}
         setShowEmojiPicker={setShowEmojiPicker}
         currentChatId={currentChat?._id}
       />

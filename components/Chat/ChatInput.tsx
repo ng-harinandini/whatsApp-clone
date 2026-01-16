@@ -11,6 +11,7 @@ type ChatInputProps = {
   message: string;
   setMessage: React.Dispatch<React.SetStateAction<string>>;
   sendMessage: () => void;
+  sendImage: (uri: string) => void;
   setShowEmojiPicker: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
@@ -20,8 +21,10 @@ function ChatInput({
   message,
   setMessage,
   sendMessage,
+  sendImage,
 }: ChatInputProps) {
   const router = useRouter();
+
   const handleLoadFromGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
@@ -37,7 +40,7 @@ function ChatInput({
     });
 
     if (!result.canceled) {
-      // sendMessage(result.assets[0].uri);
+      sendImage(result.assets[0].uri);
     }
   };
 

@@ -33,26 +33,95 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     backgroundColor: "#FFFFFF",
   },
+  imageMessageBubble: {
+    padding: 4,
+    paddingBottom: 8,
+  },
+  imageContainer: {
+    position: "relative",
+    borderRadius: 8,
+    overflow: "hidden",
+    marginBottom: 4,
+  },
+  messageImage: {
+    width: 240,
+    height: 240,
+    borderRadius: 8,
+  },
+  imageLoadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1,
+  },
+  imageCaption: {
+    paddingHorizontal: 4,
+    paddingTop: 4,
+  },
+
+  // Time overlay for image-only messages (WhatsApp style)
+  imageTimeOverlay: {
+    position: "absolute",
+    bottom: 8,
+    right: 8,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  imageTimeText: {
+    color: "#FFFFFF",
+    fontWeight: "500",
+  },
+
   messageText: {
     fontSize: 15,
     color: "#000",
   },
-  messageTime: {
-    fontSize: 11,
-    display: "flex",
+  messageTimeContainer: {
     flexDirection: "row",
     alignItems: "center",
-    color: "#667781",
-    marginTop: 4,
     alignSelf: "flex-end",
+    marginTop: 4,
   },
+  messageTime: {
+    fontSize: 11,
+    color: "#667781",
+  },
+  ticksContainer: {
+    marginLeft: 4,
+  },
+
+  // Full Screen Image Modal
+  imageModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.95)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imageModalCloseButton: {
+    position: "absolute",
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    padding: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 25,
+  },
+  fullScreenImage: {
+    width: Dimensions.get("window").width,
+    height: Dimensions.get("window").height,
+  },
+
   inputBar: {
     flexDirection: "row",
     alignItems: "center",
     padding: 8,
     minHeight: 56,
     paddingBottom: 16,
-    // backgroundColor: "#F0F0F0",
     borderTopWidth: 1,
     borderTopColor: "#D1D1D1",
   },
@@ -94,7 +163,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  // Add these to your existing styles
   emojiModalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -138,7 +206,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-
   categoryTabActive: {
     borderBottomWidth: 3,
     borderBottomColor: "#25D366",
@@ -147,7 +214,6 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     justifyContent: "flex-start",
   },
-
   categoryTabText: {
     fontSize: 15,
     color: "#667781",
@@ -171,6 +237,8 @@ const styles = StyleSheet.create({
   emojiText: {
     fontSize: 32,
   },
+
+  // Camera Styles
   ccontainer: {
     flex: 1,
     backgroundColor: "#fff",
@@ -209,4 +277,5 @@ const styles = StyleSheet.create({
     borderRadius: "50%",
   },
 });
+
 export default styles;

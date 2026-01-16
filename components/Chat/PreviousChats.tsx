@@ -1,7 +1,15 @@
 import { useUser } from "@/providers/UserContextProvider";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { FlatList, Text, View } from "react-native";
+import React, { useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Modal,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
 import styles from "./styles";
 
 type MessageType = {
@@ -9,7 +17,8 @@ type MessageType = {
   chatId: string;
   senderId: string;
   receiverId: string;
-  text: string;
+  text?: string;
+  imageUrl?: string;
   status?: string;
   createdAt: string;
 };
@@ -21,6 +30,11 @@ type PreviousChatsProps = {
 
 function PreviousChats({ messages, scrollRef }: PreviousChatsProps) {
   const { user } = useUser();
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState<{ [key: string]: boolean }>(
+    {}
+  );
+
   const formatDate = (date: string) => {
     return new Date(date).toLocaleTimeString("en-US", {
       hour: "numeric",
@@ -52,30 +66,123 @@ function PreviousChats({ messages, scrollRef }: PreviousChatsProps) {
   };
 
   return (
-    <FlatList
-      ref={scrollRef}
-      data={messages}
-      keyboardShouldPersistTaps="handled"
-      keyExtractor={(item) => item._id}
-      renderItem={({ item }) => {
-        // console.log(item);
-        const isMe = user?._id === item.senderId;
-        return (
-          <View
-            style={[
-              styles.messageBubble,
-              isMe ? styles.sentMessage : styles.receivedMessage,
-            ]}
+    <>
+      <FlatList
+        ref={scrollRef}
+        data={messages}
+        keyboardShouldPersistTaps="handled"
+        keyExtractor={(item) => item._id}
+        contentContainerStyle={styles.messagesContent}
+        renderItem={({ item }) => {
+          const isMe = user?._id === item.senderId;
+          const hasImage = !!item.imageUrl;
+          const hasText = !!item.text;
+
+          return (
+            <View
+              style={[
+                styles.messageBubble,
+                isMe ? styles.sentMessage : styles.receivedMessage,
+                hasImage && styles.imageMessageBubble,
+              ]}
+            >
+              {/* Image */}
+              {hasImage && (
+                <TouchableOpacity
+                  onPress={() => setSelectedImage(item.imageUrl!)}
+                  activeOpacity={0.9}
+                >
+                  <View style={styles.imageContainer}>
+                    {imageLoading[item._id] && (
+                      <View style={styles.imageLoadingOverlay}>
+                        <ActivityIndicator size="small" color="#25D366" />
+                      </View>
+                    )}
+                    <Image
+                      source={{ uri: item.imageUrl }}
+                      style={styles.messageImage}
+                      resizeMode="cover"
+                      onLoadStart={() =>
+                        setImageLoading((prev) => ({
+                          ...prev,
+                          [item._id]: true,
+                        }))
+                      }
+                      onLoadEnd={() =>
+                        setImageLoading((prev) => ({
+                          ...prev,
+                          [item._id]: false,
+                        }))
+                      }
+                      onError={() =>
+                        setImageLoading((prev) => ({
+                          ...prev,
+                          [item._id]: false,
+                        }))
+                      }
+                    />
+                  </View>
+                </TouchableOpacity>
+              )}
+
+              {/* Text (caption if image exists) */}
+              {hasText && (
+                <Text
+                  style={[styles.messageText, hasImage && styles.imageCaption]}
+                >
+                  {item.text}
+                </Text>
+              )}
+
+              {/* Time and Status */}
+              <View
+                style={[
+                  styles.messageTimeContainer,
+                  hasImage && !hasText && styles.imageTimeOverlay,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.messageTime,
+                    hasImage && !hasText && styles.imageTimeText,
+                  ]}
+                >
+                  {formatDate(item.createdAt)}
+                </Text>
+                {isMe && (
+                  <View style={styles.ticksContainer}>
+                    {renderTicks(item.status)}
+                  </View>
+                )}
+              </View>
+            </View>
+          );
+        }}
+      />
+
+      {/* Full Screen Image Modal */}
+      <Modal
+        visible={!!selectedImage}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setSelectedImage(null)}
+      >
+        <View style={styles.imageModalOverlay}>
+          <TouchableOpacity
+            style={styles.imageModalCloseButton}
+            onPress={() => setSelectedImage(null)}
           >
-            <Text style={styles.messageText}>{item.text}</Text>
-            <Text style={styles.messageTime}>
-              {`${formatDate(item.createdAt)}`}{" "}
-              {isMe ? renderTicks(item.status) : null}
-            </Text>
-          </View>
-        );
-      }}
-    />
+            <Ionicons name="close" size={32} color="#fff" />
+          </TouchableOpacity>
+
+          <Image
+            source={{ uri: selectedImage || "" }}
+            style={styles.fullScreenImage}
+            resizeMode="contain"
+          />
+        </View>
+      </Modal>
+    </>
   );
 }
 
