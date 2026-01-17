@@ -1,7 +1,6 @@
 import { useUser } from "@/providers/UserContextProvider";
 import axiosInstance from "@/utils/axiosInstance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Contacts from "expo-contacts";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { FlatList, Image, Pressable, Text, View } from "react-native";
@@ -22,45 +21,55 @@ function ContactsScreen() {
   const [contacts, setContacts] = useState<ContactsType | []>([]);
 
   async function syncContacts() {
-    const { status } = await Contacts.requestPermissionsAsync();
-    if (status === "granted") {
-      const { data } = await Contacts.getContactsAsync({
-        fields: [Contacts.Fields.PhoneNumbers],
-      });
+    // const { status } = await Contacts.requestPermissionsAsync();
+    // if (status === "granted") {
+    //   const { data } = await Contacts.getContactsAsync({
+    //     fields: [Contacts.Fields.PhoneNumbers],
+    //   });
 
-      const formattedContacts = data
-        .filter((c) => c.phoneNumbers && c.phoneNumbers.length > 0)
-        .map((c) => {
-          const rawNumber = c.phoneNumbers![0].number ?? "";
+    //   const formattedContacts = data
+    //     .filter((c) => c.phoneNumbers && c.phoneNumbers.length > 0)
+    //     .map((c) => {
+    //       const rawNumber = c.phoneNumbers![0].number ?? "";
 
-          const phoneCode = rawNumber.startsWith("+")
-            ? rawNumber.slice(0, 3)
-            : "+91";
+    //       const phoneCode = rawNumber.startsWith("+")
+    //         ? rawNumber.slice(0, 3)
+    //         : "+91";
 
-          const phone = rawNumber.replace(/\D/g, "").slice(-10);
+    //       const phone = rawNumber.replace(/\D/g, "").slice(-10);
 
-          return {
-            name: c.name,
-            phone,
-            phoneCode,
-          };
-        })
-        .filter((c) => c.phone.length === 10);
+    //       return {
+    //         name: c.name,
+    //         phone,
+    //         phoneCode,
+    //       };
+    //     })
+    //     .filter((c) => c.phone.length === 10);
 
-      const commonContacts = await axiosInstance.post("/contacts", {
-        contacts: formattedContacts,
-      });
-      const remContacts = commonContacts.data.filter(
-        (contact: { phone: string | undefined; }) => contact.phone !== user?.phone
-      );
-      await AsyncStorage.setItem(
-        "contacts",
-        JSON.stringify(remContacts)
-      );
-      setContacts(remContacts);
-    } else {
-      setContacts([]);
-    }
+    //   const commonContacts = await axiosInstance.post("/contacts", {
+    //     contacts: formattedContacts,
+    //   });
+    //   const remContacts = commonContacts.data.filter(
+    //     (contact: { phone: string | undefined; }) => contact.phone !== user?.phone
+    //   );
+    //   await AsyncStorage.setItem(
+    //     "contacts",
+    //     JSON.stringify(remContacts)
+    //   );
+    //   setContacts(remContacts);
+    // } else {
+    //   setContacts([]);
+    // }
+    const commonContacts = await axiosInstance.post("/contacts", {
+      contacts: [],
+    });
+    console.log(commonContacts);
+
+    await AsyncStorage.setItem("contacts", JSON.stringify(commonContacts.data));
+    const remContacts = commonContacts.data.filter(
+      (contact: any) => contact.phone !== user?.phone
+    );
+    setContacts(remContacts);
   }
 
   useEffect(() => {
